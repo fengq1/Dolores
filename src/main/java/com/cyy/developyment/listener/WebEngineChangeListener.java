@@ -2,7 +2,6 @@ package com.cyy.developyment.listener;
 
 import com.cyy.developyment.connector.JSConnector;
 import com.cyy.developyment.connector.JavaConnector;
-import com.cyy.developyment.service.ConfigService;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
@@ -26,7 +25,7 @@ public class WebEngineChangeListener implements ChangeListener<Worker.State> {
             // 获取Javascript连接器对象。
             JSConnector.load((JSObject) webEngine.executeScript("getJsConnector()"));
             //载入配置数据
-            ConfigService.load();
+            JSConnector.pushData();
         }
     }
 }

@@ -1,9 +1,13 @@
 package com.cyy.developyment.entity;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.IdUtil;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @Title
@@ -15,6 +19,20 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class SshInfo implements Serializable {
 
+
+    private String id;
+
+    //是否跳板机
+    private boolean jump;
+
+    private String jumpIp;
+
+    private Integer jumpPort;
+
+    private String jumpUsername;
+
+    private String jumpPassword;
+
     private String name;
 
     private String username;
@@ -24,5 +42,12 @@ public class SshInfo implements Serializable {
     private String ip;
 
     private Integer port;
+
+    private String createTime;
+
+    public SshInfo() {
+        this.id = IdUtil.fastSimpleUUID();
+        this.createTime = DateUtil.formatDateTime(new Date());
+    }
 
 }

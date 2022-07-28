@@ -13,7 +13,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class AppInfo implements Serializable {
+public class ProjectInfo implements Serializable {
 
     private String name;
 

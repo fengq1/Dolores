@@ -1,12 +1,11 @@
 package com.cyy.developyment.connector;
 
 import cn.hutool.json.JSONObject;
-import com.cyy.developyment.entity.AppInfo;
-import com.cyy.developyment.entity.SshInfo;
+import com.cyy.developyment.service.DataService;
+import com.cyy.developyment.service.SshInfoService;
 import javafx.application.Platform;
 import netscape.javascript.JSObject;
 
-import java.util.List;
 
 public class JSConnector {
 
@@ -17,11 +16,11 @@ public class JSConnector {
         JSConnector.jsObject = jsObject;
     }
 
-    public static void pushData(List<SshInfo> sshs, List<AppInfo> apps) {
+    public static void pushData() {
         Platform.runLater(() -> {
             JSONObject data = new JSONObject();
-            data.set("sshs", sshs);
-            data.set("apps", apps);
+            data.set("sshs", SshInfoService.list());
+            data.set("projects", DataService.projects);
             jsObject.call("java_call", "reloadData", data);
         });
     }
