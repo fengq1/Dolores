@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="vue/vue.min.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="element/index.css">
+    <!-- 引入组件库 -->
+    <script src="element/index.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <el-row>
+        <el-col :span="24">
+            <el-tabs v-model="activeName" @tab-click="handleClick">
+                <el-tab-pane label="任务视图" name="mission">任务视图</el-tab-pane>
+
+                <!--SSH配置开始-->
+                <el-tab-pane label="SSH配置" name="ssh">
+                    <div v-show="sshSelectShow">
+                        <el-row>
+                            <el-col :span="3" :offset="1">
+                                <el-button type="info" @click="changeSshView">新增</el-button>
+                            </el-col>
+                        </el-row>
+                        <el-row style="padding-top:20px">
+                            <el-col v-for="(ssh) in sshs" :key="ssh.name" :span="10" :offset="1">
+                                <el-card class="box-card">
+                                    <div slot="header" class="clearfix">
+                                        <span>{{ssh.name}}</span>
+                                        <el-button style="float: right; padding: 5px 0" type="danger">删除</el-button>
+                                    </div>
+                                    <div class="text item">
+                                        {{ssh.ip}}:{{ssh.port}}
+                                    </div>
+                                    <div class="text item">
+                                        {{ssh.username}}
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </div>
+                    <div v-show="sshAddShow">
+                        <el-row style="padding-top:20px">
+                            <el-col :span="12" :offset="8">
+                                新增SSH配置
+                            </el-col>
+                        </el-row>
+                        <el-row style="padding-top:20px">
+
+                            <el-col :span="12" :offset="3">
+                                <el-form label-position="right" label-width="80px" :model="sshForm">
+                                    <el-form-item label="名称">
+                                        <el-input v-model="sshForm.name"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="ip">
+                                        <el-input v-model="sshForm.ip"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="端口号">
+                                        <el-input v-model="sshForm.port"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="用户名">
+                                        <el-input v-model="sshForm.username"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="密码">
+                                        <el-input v-model="sshForm.password"></el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-button type="primary" @click="addSsh">提交</el-button>
+                                        <el-button plain @click="changeSshView">返回</el-button>
+                                    </el-form-item>
+                                </el-form>
+                            </el-col>
+                        </el-row>
+                    </div>
+                </el-tab-pane>
+                <!--应用配置开始-->
+                <el-tab-pane label="应用配置" name="app">应用配置</el-tab-pane>
+            </el-tabs>
+        </el-col>
+    </el-row>
+</div>
+
+<script>
+
+    var jsConnector = {
+        java_call: function (method, response) {
+            alert("java_call");
+            if (method === "reloadData") {
+                alert("reloadData" + app.activeName);
+                var data = JSON.parse(response);
+                app.sshs = data.sshs;
+                app.apps = data.apps;
+            }
+        }
+    };
+
+    function getJsConnector() {
+        return jsConnector;
+    };
+    var app = new Vue({
+        // 控制的标签容器
+        el: '#app',
+        // 交互的数据
+        data: function () {
+            return {
+                activeName: 'ssh',
+                sshs: [],
+                apps: [],
+                sshSelectShow: true,
+                sshAddShow: false,
+                sshForm: {
+                    name: "",
+                    ip: "",
+                    port: "",
+                    username: "",
+                    password: ""
+                }
+            }
+        },
+        // 方法
+        methods: {
+            handleClick(tab, event) {
+                console.log(tab, event);
+            },
+            changeSshView() {
+                this.sshSelectShow = !this.sshSelectShow;
+                this.sshAddShow = !this.sshAddShow;
+            },
+            addSsh() {
+
+            }
+        }
+    });
+
+</script>
+</body>
+</html>
