@@ -1,23 +1,18 @@
 package com.cyy.developyment.util;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.net.NetUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.extra.ssh.JschUtil;
-import cn.hutool.log.StaticLog;
+import com.cyy.developyment.entity.ProjectInfo;
 import com.cyy.developyment.entity.SshInfo;
+import com.cyy.developyment.enums.PushTypeEnum;
+import com.cyy.developyment.service.LogService;
+import com.cyy.developyment.service.ProjectInfoService;
 import com.cyy.developyment.service.SshInfoService;
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Title
@@ -28,17 +23,26 @@ import java.util.Map;
 public class SshUtils {
     private static Map<String, Session> sessionMap = new HashMap<>();
 
-    public static boolean testConnection(String id) {
-        Session session = getSession(id);
+    public static boolean testConnection(String sshId) {
+        Session session = getSession(sshId);
         boolean isConnected = session != null;
-        disconnect(id);
+        disconnect(sshId);
         return isConnected;
     }
 
-    public static Session getSession(String id) {
-        SshInfo ssh = SshInfoService.getById(id);
+    public static Session getSession(String sshId) {
+        return getSession(PushTypeEnum.CONSOLE, sshId);
+    }
+
+    public static Session getSession(PushTypeEnum pushType, String sshId) {
+        SshInfo ssh = SshInfoService.getById(sshId);
+        LogService.append(true, pushType, "开始与服务器【" + ssh.getInfo() + "】建立连接");
+        String sshKey = pushType.getCode() + sshId;
+        Session session = sessionMap.get(sshKey);
+        if (null != session)
+            return session;
+
         Session hostSession = null;
-        Session session = null;
         try {
             if (ssh.isJump()) {
                 hostSession = JschUtil.getSession(ssh.getJumpIp(), ssh.getJumpPort(), ssh.getJumpUsername(), ssh.getJumpPassword());
@@ -47,11 +51,12 @@ public class SshUtils {
                 session = JschUtil.getSession("127.0.0.1", localPort, ssh.getUsername(), ssh.getPassword());
             } else
                 session = JschUtil.getSession(ssh.getIp(), ssh.getPort(), ssh.getUsername(), ssh.getPassword());
-            sessionMap.put(id, session);
-            sessionMap.put("j" + id, hostSession);
+            sessionMap.put(sshKey, session);
+            sessionMap.put("j" + sshKey, hostSession);
             return session;
         } catch (Exception e) {
             e.printStackTrace();
+            LogService.append(false, pushType, "与服务器建立连接失败," + e.getMessage());
             if (null != session)
                 session.disconnect();
             if (null != hostSession)
@@ -60,56 +65,56 @@ public class SshUtils {
         }
     }
 
-    public static void disconnect(String id) {
-        Session session = sessionMap.get(id);
+    public static void disconnect(PushTypeEnum pushType, String sshId) {
+        String sshKey = sshId;
+        Session session = sessionMap.get(sshKey);
         if (null != session)
             session.disconnect();
-        session = sessionMap.get("j" + id);
+        session = sessionMap.get("j" + sshKey);
         if (null != session)
             session.disconnect();
+        LogService.append(true, pushType, "关闭服务器连接");
     }
 
-    public static void main(String[] args) {
-        System.out.println(NetUtil.getUsableLocalPort());
+    public static void disconnect(String sshId) {
+        disconnect(PushTypeEnum.CONSOLE, sshId);
     }
 
-    public static String remoteExecute(Session session, String command) throws JSchException {
-        StaticLog.info(">> {}", command);
-        boolean result = NetUtil.isUsableLocalPort(6379);
-        List<String> resultLines = new ArrayList<>();
-        ChannelExec channel = null;
+    public static boolean upload(Session session, ProjectInfo project) {
         try {
-            channel = (ChannelExec) session.openChannel("exec");
-            channel.setCommand(command);
-            InputStream input = channel.getInputStream();
-            channel.connect(10000);
+            ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
+            sftp.connect();
             try {
-                BufferedReader inputReader = new BufferedReader(new InputStreamReader(input));
-                String inputLine = null;
-                while ((inputLine = inputReader.readLine()) != null) {
-                    StaticLog.info("   {}", inputLine);
-                    resultLines.add(inputLine);
-                }
-            } finally {
-                if (input != null) {
-                    try {
-                        input.close();
-                    } catch (Exception e) {
-                        StaticLog.error("JSch inputStream close error:", e);
-                    }
-                }
+                sftp.mkdir(project.getRemoteBackupsPath());
+            } catch (Exception e) {
             }
-        } catch (IOException e) {
-            StaticLog.error("IOcxecption:", e);
-        } finally {
-            if (channel != null) {
-                try {
-                    channel.disconnect();
-                } catch (Exception e) {
-                    StaticLog.error("JSch channel disconnect error:", e);
-                }
+            sftp.cd(project.getRemoteBackupsPath());
+            try {
+                sftp.rename(project.getRemoteBackupsWarPath(), project.getRemoteBackupsWarPath() + "_" + DateUtil.formatDateTime(new Date()));
+            } catch (Exception e) {
             }
+            LogService.pInfo("开始上传war包");
+            sftp.put(project.getLocalWarPath(), project.getRemoteBackupsPath());
+            LogService.pInfo("上传war包成功！");
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            if (e.getMessage().contains("session is down")) {
+                session = getSession(project.getSshId());
+                upload(session, project);
+            }
+            e.printStackTrace();
+            disconnect(project.getSshId());
+            LogService.pError("上传war包失败," + e.getMessage());
+            return Boolean.FALSE;
         }
-        return resultLines.toString();
+    }
+
+    public static void tailLog(String projectId) {
+        ThreadUtil.execute(() -> {
+            ProjectInfo project = ProjectInfoService.getById(projectId);
+            Session session = getSession(PushTypeEnum.PROJECT, project.getSshId());
+            String cmd = "tail -f " + project.getRemotePath() + "/logs/catalina.out";
+            CommandUtils.remoteExec(PushTypeEnum.PROJECT, session, cmd);
+        });
     }
 }

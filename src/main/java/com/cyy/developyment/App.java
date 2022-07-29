@@ -1,5 +1,7 @@
 package com.cyy.developyment;
 
+import cn.hutool.core.thread.ThreadUtil;
+import com.cyy.developyment.constant.Constants;
 import com.cyy.developyment.entity.Config;
 import com.cyy.developyment.listener.HeightChangeListener;
 import com.cyy.developyment.listener.WebEngineChangeListener;
@@ -52,10 +54,12 @@ public class App extends Application {
     @Override
     public void stop() {
         try {
+            LogService.info("应用关闭");
             super.stop();
         } catch (Exception e) {
 
         }
+        System.exit(0);
     }
 
     public static void main(String[] args) {

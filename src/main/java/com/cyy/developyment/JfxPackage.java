@@ -5,7 +5,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ZipUtil;
 import cn.hutool.log.StaticLog;
 import com.cyy.developyment.entity.Config;
-import com.cyy.developyment.util.CmdUtil;
+import com.cyy.developyment.util.CommandUtils;
 
 import java.io.File;
 
@@ -14,14 +14,14 @@ public class JfxPackage {
     public static void main(String[] args) {
         String path = new File(Config.class.getResource("").getPath()).getAbsolutePath();
         path = path.substring(0, path.lastIndexOf("\\target\\classes"));
-        CmdUtil.exeCmd("D:");
+        CommandUtils.exeCmd("D:");
         StaticLog.info("1.进入项目目录-" + path);
-        CmdUtil.exeCmd("cd " + path);
+        CommandUtils.exeCmd("cd " + path);
 
         StaticLog.info("2.clean");
-        CmdUtil.exeCmd("mvn clean");
+        CommandUtils.exeCmd("mvn clean");
         StaticLog.info("3.打包");
-        CmdUtil.exeCmd("mvn jfx:native -f pom.xml");
+        CommandUtils.exeCmd("mvn jfx:native -f pom.xml");
 
 
         String zipPath = path + "\\target\\jfx\\native";

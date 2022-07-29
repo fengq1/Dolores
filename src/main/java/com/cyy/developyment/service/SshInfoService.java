@@ -5,9 +5,7 @@ import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.cyy.developyment.connector.JSConnector;
 import com.cyy.developyment.constant.Constants;
-import com.cyy.developyment.entity.ProjectInfo;
 import com.cyy.developyment.entity.SshInfo;
 
 import java.io.File;
@@ -62,13 +60,13 @@ public class SshInfoService {
      * @param formData 表单数据
      * @return
      */
-    public static void addSsh(String formData) throws IOException {
+    public static void addSsh(String formData) {
         SshInfo sshInfo = JSONUtil.toBean(formData, SshInfo.class);
         sshMap.put(sshInfo.getId(), sshInfo);
-        writeSsh();
+        write();
     }
 
-    private static void writeSsh() throws IOException {
+    private static void write() {
         FileWriter fileWriter = new FileWriter(sshConfigFile);
         fileWriter.write(JSONUtil.toJsonStr(sshMap.values()));
     }
@@ -79,9 +77,9 @@ public class SshInfoService {
      * @param id id
      * @return
      */
-    public static void delSsh(String id) throws IOException {
+    public static void delSsh(String id) {
         sshMap.remove(id);
-        writeSsh();
+        write();
         LogService.info("SSH配置数据：" + sshMap.values());
     }
 

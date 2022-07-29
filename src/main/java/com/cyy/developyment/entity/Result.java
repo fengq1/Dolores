@@ -18,6 +18,8 @@ public class Result implements Serializable {
 
     private String msg;
 
+    private Object data;
+
     public static String ok() {
         Result result = new Result();
         result.success = true;
@@ -32,10 +34,18 @@ public class Result implements Serializable {
         return JSONUtil.toJsonStr(result);
     }
 
+    public static String ok(Object data) {
+        Result result = new Result();
+        result.success = true;
+        result.msg = "操作成功";
+        result.data = data;
+        return JSONUtil.toJsonStr(result);
+    }
+
     public static String error(String message) {
         Result result = new Result();
         result.success = false;
-        result.msg =  message;
+        result.msg = message;
         return JSONUtil.toJsonStr(result);
 
     }

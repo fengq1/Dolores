@@ -50,4 +50,7 @@ public class SshInfo implements Serializable {
         this.createTime = DateUtil.formatDateTime(new Date());
     }
 
+    public String getInfo() {
+        return name + "," + (jump ? jumpIp + " - " + ip : ip);
+    }
 }

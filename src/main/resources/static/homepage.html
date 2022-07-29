@@ -12,123 +12,330 @@
 <div id="app">
     <el-row>
         <el-col :span="24">
-            <el-tabs v-model="activeName" @tab-click="handleClick">
-                <el-tab-pane label="任务视图" name="mission">任务视图</el-tab-pane>
-
-                <!--SSH配置开始-->
-                <el-tab-pane label="SSH配置" name="ssh">
-                    <div v-show="sshSelectShow">
-                        <el-row>
-                            <el-col :span="3" :offset="18">
-                                <el-button type="primary" @click="changeSshView" plain>新增</el-button>
-                            </el-col>
-                        </el-row>
-                        <el-row style="padding-top:20px">
-                            <el-col v-for="(ssh) in sshs" :key="ssh.name" :span="8" :offset="2"
-                                    style="padding-top:10px;">
-                                <el-card class="box-card" style="height: 250px">
-                                    <div slot="header" class="clearfix">
-                                        <span>配置：{{ssh.name}}</span>
-                                        <el-button style="float: right;" type="danger"
-                                                   icon="el-icon-delete" circle
-                                                   @click="delSsh(ssh.id)">
-                                        </el-button>
-                                        <el-button style="float: right;" type="success"
-                                                   icon="el-icon-s-promotion"
-                                                   @click="testConnect(ssh.id)" circle></el-button>
-                                    </div>
-                                    <div v-if="ssh.jump">
-                                        <div class="text item">
-                                            堡垒机地址：{{ssh.jumpIp}}:{{ssh.jumpPort}}
-                                        </div>
-                                        <div class="text item">
-                                            堡垒机用户名：{{ssh.jumpUsername}}
-                                        </div>
-                                        <div class="text item">
-                                            堡垒机密码：{{ssh.jumpPassword}}
-                                        </div>
-                                    </div>
-                                    <div class="text item">
-                                        地址：{{ssh.ip}}:{{ssh.port}}
-                                    </div>
-                                    <div class="text item">
-                                        用户名：{{ssh.username}}
-                                    </div>
-                                    <div class="text item">
-                                        密码：{{ssh.password}}
-                                    </div>
-                                    <div class="text item">
-                                        创建时间：{{ssh.createTime}}
-                                    </div>
-                                </el-card>
-                            </el-col>
-                        </el-row>
-                    </div>
-                    <div v-show="sshAddShow">
-                        <el-row style="padding-top:20px">
-                            <el-col :span="12" :offset="8">
-                                新增SSH配置
-                            </el-col>
-                        </el-row>
-                        <el-row style="padding-top:20px">
-                            <el-col :span="12" :offset="3">
-                                <el-form label-position="right" label-width="150px" :model="sshForm">
-                                    <el-form-item label="名称">
-                                        <el-input v-model="sshForm.name"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="是否堡垒机">
-                                        <el-switch v-model="sshForm.jump" @change="jumpChange"></el-switch>
-                                    </el-form-item>
-                                    <el-form-item label="堡垒机ip" v-show="jumpShow">
-                                        <el-input v-model="sshForm.jumpIp"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="堡垒机端口号" v-show="jumpShow">
-                                        <el-input v-model="sshForm.jumpPort"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="堡垒机用户名" v-show="jumpShow">
-                                        <el-input v-model="sshForm.jumpUsername"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="堡垒机密码" v-show="jumpShow">
-                                        <el-input v-model="sshForm.jumpPassword"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="ip">
-                                        <el-input v-model="sshForm.ip"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="端口号">
-                                        <el-input v-model="sshForm.port"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="用户名">
-                                        <el-input v-model="sshForm.username"></el-input>
-                                    </el-form-item>
-                                    <el-form-item label="密码">
-                                        <el-input v-model="sshForm.password"></el-input>
-                                    </el-form-item>
-                                    <el-form-item>
-                                        <el-button type="primary" @click="addSsh">提交</el-button>
-                                        <el-button plain @click="changeSshView">返回</el-button>
-                                    </el-form-item>
-                                </el-form>
-                            </el-col>
-                        </el-row>
-                    </div>
-                </el-tab-pane>
-                <!--应用配置开始-->
-                <el-tab-pane label="项目配置" name="project">项目配置</el-tab-pane>
-            </el-tabs>
+            <div>
+                <!--<el-divider content-position="left">Dolores</el-divider>-->
+                <el-col :span="10">
+                    <el-divider content-position="right">Theae violent delights have violent ends</el-divider>
+                </el-col>
+                <el-col :span="3" :offset="10">
+                    <el-button type="success" @click="changeView"
+                               plain>{{activeName==='mission'?'创建任务':'新增配置'}}
+                    </el-button>
+                </el-col>
+            </div>
         </el-col>
     </el-row>
-</div>
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+        <el-tab-pane label="主页" name="mission">
+            <el-row>
+                <el-col :span="24">
+                    <el-descriptions class="margin-top" title="任务视图" column="2" border>
+                        <el-descriptions-item label="当前任务">{{currentMission.name}}</el-descriptions-item>
+                        <el-descriptions-item label="当前项目">{{currentProjectName}}</el-descriptions-item>
+                        <el-descriptions-item label="项目列表">
+                            <el-popover
+                                    v-for="(project,index) in currentMission.projects" :key="project.id"
+                                    placement="top"
+                                    trigger="hover"
+                                    v-model="projectOptionVisibles[index]"
+                                    style="padding: 2px"
+                            >
+                                <el-button size="mini" type="text" @click="tailLog(project.id,index)">查看服务器日志
+                                </el-button>
+                                <el-button size="mini" type="text" @click="projectOptionVisible = false">重启服务
+                                </el-button>
+                                <el-tag slot="reference"
+                                        size="small">
+                                    {{project.name}}
+                                </el-tag>
+                            </el-popover>
 
+                        </el-descriptions-item>
+                    </el-descriptions>
+                </el-col>
+                <el-col :span="24" style="padding-top: 10px">
+                    <el-steps :active="missionStep" :process-status="processStatus" finish-status="success"
+                              align-center>
+                        <el-step v-loading="step1Loading" title="打包" icon="el-icon-s-cooperation"></el-step>
+                        <el-step v-loading="step2Loading" title="上传" icon="el-icon-upload"></el-step>
+                        <el-step v-loading="step3Loading" title="启动" icon="el-icon-video-play"></el-step>
+                    </el-steps>
+                </el-col>
+                <el-col :span="22" :offset="1" style="padding-top: 10px">
+                    <el-divider>控制台</el-divider>
+                    <el-button style="float: right" size="mini" type="text" @click="consoleLog = ''">清屏
+                    </el-button>
+                    <el-input
+                            id="consoleId"
+                            prefix-icon="el-icon-s-cooperation"
+                            type="textarea"
+                            :rows="18"
+                            resize="none"
+                            readonly
+                            clearable
+                            v-model="consoleLog">
+                    </el-input>
+                </el-col>
+            </el-row>
+        </el-tab-pane>
+        <!--SSH配置开始-->
+        <el-tab-pane label="SSH配置" name="ssh">
+            <el-row style="padding-top:20px">
+                <el-col v-for="(ssh) in sshs" :key="ssh.id" :span="9" :offset="2"
+                        style="padding-top:10px;">
+                    <el-card class="box-card" style="height: 250px">
+                        <div slot="header" class="clearfix">
+                            <span>配置：{{ssh.name}}</span>
+                            <el-button style="float: right;" type="danger"
+                                       icon="el-icon-delete" circle
+                                       @click="delSsh(ssh.id)">
+                            </el-button>
+                            <el-button style="float: right;" type="success"
+                                       icon="el-icon-s-promotion"
+                                       @click="testConnect(ssh.id)" circle></el-button>
+                        </div>
+                        <div v-if="ssh.jump">
+                            <div class="text item">
+                                堡垒机地址：{{ssh.jumpIp}}:{{ssh.jumpPort}}
+                            </div>
+                            <div class="text item">
+                                堡垒机用户名：{{ssh.jumpUsername}}
+                            </div>
+                            <div class="text item">
+                                堡垒机密码：{{ssh.jumpPassword}}
+                            </div>
+                        </div>
+                        <div class="text item">
+                            地址：{{ssh.ip}}:{{ssh.port}}
+                        </div>
+                        <div class="text item">
+                            用户名：{{ssh.username}}
+                        </div>
+                        <div class="text item">
+                            密码：{{ssh.password}}
+                        </div>
+                        <div class="text item">
+                            创建时间：{{ssh.createTime}}
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+        </el-tab-pane>
+        <!--应用配置开始-->
+        <el-tab-pane label="项目配置" name="project">
+            <el-row style="padding-top:20px">
+                <el-col v-for="(project) in projects" :key="project.id" :span="16" :offset="4"
+                        style="padding-top:10px;">
+                    <el-card class="box-card">
+                        <div slot="header" class="clearfix">
+                            <span>项目名称：{{project.name}}</span>
+                            <el-button style="float: right;" type="danger"
+                                       icon="el-icon-delete" circle
+                                       @click="delProject(project.id)">
+                            </el-button>
+                            <el-button style="float: right;" type="primary"
+                                       icon="el-icon-c-scale-to-original"
+                                       @click="tailLog(project.id,-1)" circle>
+                            </el-button>
+                        </div>
+                        <div class="text item">
+                            SSH配置：{{project.ssh !=null?project.ssh.name:'无'}}
+                        </div>
+                        <div class="text item">
+                            本地Pom文件路径：{{project.pomPath}}
+                        </div>
+                        <div class="text item">
+                            War包名称：{{project.warName}}
+                        </div>
+                        <div class="text item">
+                            服务器项目根路径：{{project.remotePath}}
+                        </div>
+                        <div class="text item">
+                            创建时间：{{project.createTime}}
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+        </el-tab-pane>
+    </el-tabs>
+
+    <div>
+        <el-dialog title="创建任务" :visible.sync="missionDialog">
+            <el-form :model="missionForm">
+                <el-form-item label="任务名称">
+                    <el-input v-model="missionForm.name" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="选择项目">
+                    <el-select v-model="missionForm.projects" multiple placeholder="请选择">
+                        <el-option
+                                v-for="item in projectOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="missionDialog = false">取 消</el-button>
+                <el-button type="primary" @click="createMission">确 定</el-button>
+            </div>
+        </el-dialog>
+        <el-dialog title="新增SSH配置" :visible.sync="sshDialog">
+            <el-form label-position="right" label-width="150px" :model="sshForm">
+                <el-form-item label="名称">
+                    <el-input v-model="sshForm.name"></el-input>
+                </el-form-item>
+                <el-form-item label="是否堡垒机">
+                    <el-switch v-model="sshForm.jump" @change="jumpChange"></el-switch>
+                </el-form-item>
+                <el-form-item label="堡垒机ip" v-show="jumpShow">
+                    <el-input v-model="sshForm.jumpIp"></el-input>
+                </el-form-item>
+                <el-form-item label="堡垒机端口号" v-show="jumpShow">
+                    <el-input v-model="sshForm.jumpPort"></el-input>
+                </el-form-item>
+                <el-form-item label="堡垒机用户名" v-show="jumpShow">
+                    <el-input v-model="sshForm.jumpUsername"></el-input>
+                </el-form-item>
+                <el-form-item label="堡垒机密码" v-show="jumpShow">
+                    <el-input v-model="sshForm.jumpPassword"></el-input>
+                </el-form-item>
+                <el-form-item label="ip">
+                    <el-input v-model="sshForm.ip"></el-input>
+                </el-form-item>
+                <el-form-item label="端口号">
+                    <el-input v-model="sshForm.port"></el-input>
+                </el-form-item>
+                <el-form-item label="用户名">
+                    <el-input v-model="sshForm.username"></el-input>
+                </el-form-item>
+                <el-form-item label="密码">
+                    <el-input v-model="sshForm.password"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="addSsh">提交</el-button>
+                    <el-button plain @click="sshDialog=false">返回</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+        <el-dialog title="新增项目配置" :visible.sync="projectDialog">
+            <el-form label-position="right" label-width="150px" :model="projectForm">
+                <el-form-item label="名称">
+                    <el-input v-model="projectForm.name"></el-input>
+                </el-form-item>
+                <el-form-item label="SSH配置">
+                    <el-select v-model="projectForm.sshId" placeholder="请选择">
+                        <el-option
+                                v-for="item in sshOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="本地Pom文件路径">
+                    <el-input v-model="projectForm.pomPath"></el-input>
+                </el-form-item>
+                <el-form-item label="War包名称">
+                    <el-input v-model="projectForm.warName"></el-input>
+                </el-form-item>
+                <el-form-item label="服务器项目根路径">
+                    <el-input v-model="projectForm.remotePath"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitProject">提交</el-button>
+                    <el-button plain @click="projectDialog=false">返回</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+
+        <el-dialog title="项目服务器日志" :visible.sync="projectLogDialog" width="80%">
+            <el-button style="float: right" size="mini" type="text" @click="projectServerLog = ''">清屏
+            </el-button>
+            <el-input
+                    id="projectServerLogId"
+                    prefix-icon="el-icon-s-cooperation"
+                    type="textarea"
+                    :rows="18"
+                    resize="none"
+                    readonly
+                    clearable
+                    v-model="projectServerLog">
+            </el-input>
+        </el-dialog>
+    </div>
+
+
+</div>
 <script>
 
     var jsConnector = {
         java_call: function (method, response) {
-            alert("java_call");
+            var data = JSON.parse(response);
             if (method === "reloadData") {
-                alert("reloadData" + app.activeName);
-                var data = JSON.parse(response);
                 app.sshs = data.sshs;
                 app.projects = data.projects;
+                if (null != app.sshs) {
+                    app.sshOptions = [];
+                    for (let i = 0; i < app.sshs.length; i++) {
+                        let ssh = app.sshs[i];
+                        let sshOption = {};
+                        sshOption.value = ssh.id;
+                        sshOption.label = ssh.name;
+                        app.sshOptions[i] = sshOption;
+                    }
+                }
+                if (null != app.projects) {
+                    app.projectOptions = [];
+                    for (let i = 0; i < app.projects.length; i++) {
+                        let project = app.projects[i];
+                        let projectOption = {};
+                        projectOption.value = project.id;
+                        projectOption.label = project.name;
+                        app.projectOptions[i] = projectOption;
+                    }
+                }
+            } else if (method === 'pushConsole') {
+                app.consoleLog += data.log + "\n";
+                app.$nextTick(() => {
+                    setTimeout(() => {
+                        const textarea = document.getElementById("consoleId");
+                        textarea.scrollTop = textarea.scrollHeight;
+                    }, 100)
+                })
+            } else if (method === 'pushProjectLog') {
+                app.projectServerLog += data.log + "\n";
+                app.$nextTick(() => {
+                    setTimeout(() => {
+                        const textarea = document.getElementById("projectServerLogId");
+                        textarea.scrollTop = textarea.scrollHeight;
+                    }, 100)
+                })
+            } else if (method === 'missionStatus') {
+                app.processStatus = data.processStatus;
+                app.missionStep = data.missionStep;
+                // alert(data.missionStep + "_" + data.processStatus)
+                if (data.processStatus != null
+                    && data.processStatus !== "") {
+                    app.step1Loading = false;
+                    app.step2Loading = false;
+                    app.step3Loading = false;
+                } else {
+                    if (app.missionStep === 1) {
+                        app.step1Loading = false;
+                        app.step2Loading = true;
+                        app.step3Loading = false;
+                    } else if (app.missionStep === 2) {
+                        app.step1Loading = false;
+                        app.step2Loading = false;
+                        app.step3Loading = true;
+                    } else if (app.missionStep === 3) {
+                        app.step1Loading = false;
+                        app.step2Loading = false;
+                        app.step3Loading = false;
+                    }
+                }
             }
         }
     };
@@ -142,12 +349,21 @@
         // 交互的数据
         data: function () {
             return {
-                activeName: 'ssh',
+                activeName: 'mission',
                 sshs: [],
+                step1Loading: false,
+                step2Loading: false,
+                step3Loading: false,
+                sshOptions: [],
+                projectOptions: [],
                 projects: [],
-                sshSelectShow: true,
-                sshAddShow: false,
+                sshDialog: false,
+                projectDialog: false,
+                isAddProject: false,
                 jumpShow: false,
+                missionDialog: false,
+                projectOptionVisibles: [],
+                projectLogDialog: false,
                 sshForm: {
                     name: "",
                     ip: "",
@@ -155,7 +371,15 @@
                     username: "",
                     password: "",
                     jump: false
-                }
+                },
+                missionForm: {},
+                projectForm: {},
+                consoleLog: "",
+                missionStep: 0,
+                processStatus: "",
+                currentMission: "",
+                currentProjectName: "",
+                projectServerLog: ""
             }
         },
         // 方法
@@ -163,21 +387,58 @@
             handleClick(tab, event) {
                 console.log(tab, event);
             },
-            changeSshView() {
-                this.sshSelectShow = !this.sshSelectShow;
-                this.sshAddShow = !this.sshAddShow;
+            changeView() {
+                if (this.activeName === 'mission')
+                    this.missionDialog = true;
+                else if (this.activeName === 'ssh')
+                    this.sshDialog = true;
+                else if (this.activeName === 'project')
+                    this.projectDialog = true;
             },
             addSsh() {
-                var result = JSON.parse(javaConnector.js_addSsh(JSON.stringify(this.sshForm)));
+                var result = JSON.parse(javaConnector.addSsh(JSON.stringify(this.sshForm)));
                 if (result.success) {
-                    this.successMsg();
-                    this.changeSshView();
+                    this.successMsg(result.msg);
+                    this.sshDialog = false;
+                } else {
+                    this.errorMsg(result.msg);
+                }
+            },
+            submitProject() {
+                var result = JSON.parse(javaConnector.submitProject(JSON.stringify(this.projectForm)));
+                if (result.success) {
+                    this.successMsg(result.msg);
+                    this.projectDialog = false;
+                } else {
+                    this.errorMsg(result.msg);
+                }
+            },
+            createMission() {
+                var result = JSON.parse(javaConnector.createMission(JSON.stringify(this.missionForm)));
+                if (result.success) {
+                    alert(result.data)
+                    this.currentMission = result.data;
+                    this.currentProjectName = this.currentMission.projects[0].name;
+                    this.successMsg(result.msg);
+                    this.missionDialog = false;
+                    this.step1Loading = true;
+                    for (let i = 0; i < this.currentMission.projects; i++) {
+                        this.projectOptionVisibles[i] = false;
+                    }
                 } else {
                     this.errorMsg(result.msg);
                 }
             },
             delSsh(id) {
-                var result = JSON.parse(javaConnector.js_delSsh(id));
+                var result = JSON.parse(javaConnector.delSsh(id));
+                if (result.success) {
+                    this.successMsg(result.msg);
+                } else {
+                    this.errorMsg(result.msg);
+                }
+            },
+            delProject(id) {
+                var result = JSON.parse(javaConnector.delProject(id));
                 if (result.success) {
                     this.successMsg(result.msg);
                 } else {
@@ -185,12 +446,19 @@
                 }
             },
             testConnect(id) {
-                var result = JSON.parse(javaConnector.js_testConnect(id));
+                var result = JSON.parse(javaConnector.testConnect(id));
                 if (result.success) {
                     this.successMsg(result.msg);
                 } else {
                     this.errorMsg(result.msg);
                 }
+            },
+            tailLog(projectId, index) {
+                if (index !== -1)
+                    this.projectOptionVisibles[index] = false;
+                this.projectServerLog = "";
+                this.projectLogDialog = true;
+                setTimeout(javaConnector.tailLog(projectId), 2000);
             },
             jumpChange() {
                 this.jumpShow = this.sshForm.jump;

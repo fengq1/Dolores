@@ -4,7 +4,9 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileWriter;
 import cn.hutool.log.StaticLog;
+import com.cyy.developyment.connector.JSConnector;
 import com.cyy.developyment.constant.Constants;
+import com.cyy.developyment.enums.PushTypeEnum;
 
 import java.util.Date;
 
@@ -23,7 +25,7 @@ public class LogService {
         clientLogWriter = new FileWriter(clientLogPath);
     }
 
-    public synchronized static void append(boolean isInfo, String logInfo) {
+    public synchronized static void append(boolean isInfo, PushTypeEnum pushType, String logInfo) {
         try {
             StaticLog.info(logInfo);
             Date now = new Date();
@@ -38,17 +40,28 @@ public class LogService {
             builder.append(logInfo);
             builder.append("\n");
             clientLogWriter.append(builder.toString());
+            if (pushType.equals(PushTypeEnum.CONSOLE))
+                JSConnector.pushConsole(builder.toString());
+            else if (pushType.equals(PushTypeEnum.PROJECT))
+                JSConnector.pushProjectLog(builder.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public synchronized static void info(String logInfo) {
-        append(true, logInfo);
+        append(true, PushTypeEnum.NONE, logInfo);
+    }
+
+    public synchronized static void pInfo(String logInfo) {
+        append(true, PushTypeEnum.CONSOLE, logInfo);
     }
 
     public synchronized static void error(String logInfo) {
-        append(false, logInfo);
+        append(false, PushTypeEnum.NONE, logInfo);
     }
 
+    public synchronized static void pError(String logInfo) {
+        append(false, PushTypeEnum.CONSOLE, logInfo);
+    }
 }
